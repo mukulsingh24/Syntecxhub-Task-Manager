@@ -2,8 +2,9 @@ import { useState } from "react";
 
 function Task(){
     const[task,setTask] = useState("");
+    const[taskList,setTaskList] = useState("");
     const handleSubmit=()=>{
-        console.log("Task Submitted",task)
+        setTaskList([...taskList,task])
         setTask("")
     } 
     return(
@@ -14,6 +15,12 @@ function Task(){
                 value={task}
             />
             <button onClick={handleSubmit}>Submit the Task</button>
+            <hr />
+            <h1>My Tasks</h1>
+            <ul>
+                {taskList.map((item,index) =>(
+                <li key={index}>{item}</li>))}
+            </ul>
         </div>
     )
 }

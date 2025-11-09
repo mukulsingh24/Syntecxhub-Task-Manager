@@ -13,6 +13,10 @@ function Task(){
         })
         setTaskList(newList)
     }
+    const handleEdit = () =>{
+        setTaskList([...taskList,task])
+        setTask("")
+    }
     return(
         <div>
             <h1>Task Manager</h1>
@@ -21,13 +25,25 @@ function Task(){
                 value={task}
             />
             <button onClick={handleSubmit}>Submit the Task</button>
-            <hr />
             <h1>My Tasks</h1>
             <ul>
-                {taskList.map((item,index) =>(
-                <li key={index}>{item}</li>))}
-            </ul>
-            <button onClick={()=>{handleDelete(index)}}>Delete Task</button>
+          {taskList.map((item, index) => (
+            <li key={index}>{item}
+              <button onClick={() => handleDelete(index)}>
+                Delete Task
+              </button>              
+           </li>
+          ))}
+        </ul>
+        <ul>
+          {taskList.map((item, index) => (
+            <li key={index}>{item}
+              <button onClick={() => handleEdit(index)}>
+                Edit Task
+              </button>              
+           </li>
+          ))}
+        </ul>
         </div>
     )
 }

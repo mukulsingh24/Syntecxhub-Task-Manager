@@ -11,7 +11,7 @@ function Task(){
         const newList = taskList.filter((_,index)=>{
             return index != itemIndex
         })
-        setTaskList(newList)
+        setTaskList(newList);
     }
     const handleEdit = () =>{
         setTaskList([...taskList,task])

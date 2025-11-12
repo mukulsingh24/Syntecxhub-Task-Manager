@@ -1,15 +1,7 @@
 import { useState } from "react";
 
 function Task(){
-    const[task,setTask] = useState("");
-    const[taskList,setTaskList] = useState([]);
-    const handleSubmit=()=>{
-        setTaskList([...taskList,task])
-        setTask("")
-    } 
-    
-    
-    return(
+return(
         <div>
             <h1>Task Manager</h1>
             <input type="text" placeholder="Enter Your Task"

@@ -2,6 +2,12 @@ import { useState } from 'react'
 import Task from './components/task'
 import List from './components/taskList';
 function App() {
+  const[task,setTask] = useState("");
+  const[taskList,setTaskList] = useState([]);
+  const handleSubmit=()=>{
+        setTaskList([...taskList,task])
+        setTask("")
+    } 
   const handleEdit = () =>{
       const changes = taskList.push();
     }
@@ -10,8 +16,8 @@ function App() {
     }
   return (
     <div className="App">
-      <Task />
-      <List />
+      <Task  handleSubmit = {handleSubmit} />
+      <List handleDelete = {handleDelete} handleEdit = {handleEdit} />
     </div>
   )
 }

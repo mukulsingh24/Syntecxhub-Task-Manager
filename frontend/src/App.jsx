@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Task from './components/task'
 import List from './components/taskList';
 function App() {
+  const[task,setTask] = useState("");
   const[taskList,setTaskList] = useState([]);
   const handleSubmit=()=>{
         setTaskList([...taskList,task])
@@ -12,6 +13,7 @@ function App() {
     }
     const handleDelete = () =>{
       
+
     }
   return (
     <div className="App">

@@ -8,7 +8,7 @@ function Task({ handleSubmit, task, setTask }) {
         <Row className="justify-content-center">
           <Col xs={12} sm={10} md={8} lg={6}>
             <div className="bg-white rounded-lg shadow-lg p-4 p-md-5" style={{ border: '3px solid #667eea' }}>
-              <h1 className="text-center mb-4 text-primary fw-bold">Task Manager</h1>
+              <h1 className="text-center mb-4 text-primary fw-bold">Welcome to the Task Manager</h1>
               
               <Form.Group className="mb-3">
                 <Form.Control

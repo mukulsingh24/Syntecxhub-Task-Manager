@@ -3,9 +3,11 @@ const express = require('express')
 const cors = require('cors')
 const multer = require('multer')
 const mongoose = require('mongoose')
+const UserRoutes = require('../backend/routes/authRoutes')
 
 const app = express();
 app.use(cors())
+app.use('/',UserRoutes)
 app.use(express.json())
 const PORT = 5000;
 

@@ -3,14 +3,14 @@ const mongoose = require("mongoose");
 const TaskSchema = new mongoose.Schema({
   title: {
     type: String,
-    lowercase: true,
     required: true,
+    trim:true,
   },
   user: {
-    type: String,
-    lowercase: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref:'User',
     required: true,
   },
 });
 
-module.exports = mongoose.model(Task, TaskSchema);
+module.exports = mongoose.model('Task', TaskSchema);

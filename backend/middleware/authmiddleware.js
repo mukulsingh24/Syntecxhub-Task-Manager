@@ -1,3 +1,4 @@
+require('dotenv').config({ path: '../mong.env' });
 const jwt = require('jsonwebtoken');
 const Security = (req, res, next) => {
   let token;

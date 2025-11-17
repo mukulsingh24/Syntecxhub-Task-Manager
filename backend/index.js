@@ -4,11 +4,12 @@ const cors = require('cors')
 const multer = require('multer')
 const mongoose = require('mongoose')
 const UserRoutes = require('./routes/authRoutes');
-
+const TaskRoutes = require("./routes/taskRoutes")
 const app = express();
 app.use(express.json())
 app.use(cors())
 app.use('/api/auth',UserRoutes)
+app.use('/api/tasks',TaskRoutes)
 const PORT = 5000;
 
 mongoose.connect(process.env.MONGO_URI)

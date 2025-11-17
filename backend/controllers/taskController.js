@@ -1,47 +1,66 @@
-const Task = require("../models/task")
-const jwt = require("jsonwebtoken")
+const Task = require('../models/Task');
+const createTask = async (req, res) => {
+  try {
+    const { title } = req.body;
+    const userId = req.user.id; 
+    const task = new Task({
+      title,
+      user: userId,
+    });
+    const createdTask = await task.save();
+    res.status(201).json(createdTask); 
 
-const createTask = async (req,res) =>{
-    if(!await Task.findOne({title:req.body.title})){
-            const create = new Task({
-                title:req.body.title,
-                user:req.user.id,
-            })
-            await create.save()
-            res.status(200).json({ message: "Task Created" });
-    }
-    else{
-        res.status(200).json({ message: "Task already exists" })
-    }
-    
-}
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+const getTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find({ user: req.user.id });
+    res.status(200).json(tasks);
 
-const getTask = async (req,res) =>{
-    try{
-        const result = await Task.find({user:req.user.id})
-        res.status(200).json(result)
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+const updateTask = async (req, res) => {
+  try {
+    const { title } = req.body; 
+    const taskId = req.params.id; 
+    const userId = req.user.id;
+    const updatedTask = await Task.findOneAndUpdate(
+      { _id: taskId, user: userId }, 
+      { title },                    
+      { new: true }                 
+    );
+    if (!updatedTask) {
+      return res.status(404).json({ message: 'Task not found or user not authorized' });
     }
-    catch(error){
-        res.status(500).json({message:"Server Error"})
-    }
-}
+    res.status(200).json(updatedTask); 
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+const deleteTask = async (req, res) => {
+  try {
+    const taskId = req.params.id; 
+    const userId = req.user.id;
 
-const deleteTask = async (req,res) =>{
-    try{
-        const del = await Task.findOneAndDelete({user:req.user.id , _id:req.params.id})
-        res.status(200).json(del)
-    }
-    catch(error){
-        res.status(500).json({message:"Task not Found"})
-    }
-}
+    const task = await Task.findOneAndDelete({ _id: taskId, user: userId });
 
-const updateTask = async (req,res) =>{
-    try{
-        const update= await Task.findOneAndUpdate({_id: req.params.id, user: req.user.id},{title:req.body.title},{new:true})
-        res.status(200).json(update)
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found or user not authorized' });
     }
-    catch(error){
-        res.status(500).json({message:"Server Error"})
-    }
-}
+    res.status(200).json({ message: 'Task deleted successfully' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+module.exports = {
+  createTask,
+  getTasks,
+  updateTask,
+  deleteTask,
+};

@@ -3,17 +3,19 @@ const router = express.Router();
 
 const {
   createTask,
-  getTask,
+  getTasks,
   updateTask,
   deleteTask
 } = require('../controllers/taskController');
 
-const { protect } = require("../middleware/authmiddleware");
+const { Security } = require('../middleware/authmiddleware');
+
 router.route('/')
-  .get(protect, getTask)      
-  .post(protect, createTask);
+  .get(Security, getTasks)      
+  .post(Security, createTask);
 
 router.route('/:id')
-  .put(protect, updateTask)      
-  .delete(protect, deleteTask);
+  .put(Security, updateTask)      
+  .delete(Security, deleteTask);
+  
 module.exports = router;

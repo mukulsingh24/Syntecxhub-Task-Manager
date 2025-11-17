@@ -1,103 +1,165 @@
-import { useState } from "react";
-import { Container, Alert, Row, Col } from "react-bootstrap";
-import Task from "./components/task";
-import List from "./components/taskList";
+import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'; 
+import axios from 'axios';
+import Login from "./pages/login"
+import Register from './pages/register';
+import Task from './components/task';
+import List from './components/taskList';
+import { Container, Row, Col, Alert, Button } from 'react-bootstrap';
 
-function App() {
+
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api'
+});
+
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, error => {
+  return Promise.reject(error);
+});
+
+function TaskManager({ onLogout }) {
   const [task, setTask] = useState("");
-  const [taskList, setTaskList] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
+  const [taskList, setTaskList] = useState([]); 
+  const [editTask, setEditTask] = useState(null); 
+  const [message, setMessage] = useState(""); 
 
-  const [message, setMessage] = useState("");
-
-  const showMessage = (text) => {
-    setMessage(text);
-    setTimeout(() => {
-      setMessage("");
-    }, 3000);
+  const showMessage = (text, variant = "success") => {
+    setMessage({ text, variant });
+    setTimeout(() => setMessage(""), 3000);
   };
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await api.get('/tasks');
+        setTaskList(response.data);
+      } catch (error) {
+        console.error('Failed to fetch tasks', error);
+        if (error.response && error.response.status === 401) {
+          onLogout();
+        }
+      }
+    };
+    fetchTasks();
+  }, [onLogout]);
 
-  const handleSubmit = (newtask) => {
-    if (!newtask.trim()) {
-      showMessage("Task cannot be empty.");
+  const handleSubmit = async (newTitle) => {
+    if (!newTitle.trim()) {
+      showMessage("Task cannot be empty.", "danger");
       return;
     }
-
-    if (editIndex != null) {
-      const newList = taskList.map((item, index) => {
-        if (index === editIndex) {
-          return newtask;
-        }
-        return item;
-      });
-      setTaskList(newList);
-      setEditIndex(null);
-      showMessage("Task edited successfully!");
+    if (editTask) {
+      try {
+        const response = await api.put(`/tasks/${editTask._id}`, { title: newTitle });
+        setTaskList(taskList.map(t => t._id === editTask._id ? response.data : t));
+        showMessage("Task updated successfully!");
+      } catch (error) {
+        console.error('Update failed', error);
+        showMessage("Update failed.", "danger");
+      }
     } else {
-      setTaskList([...taskList, newtask]);
-      showMessage("Task added successfully!");
+      try {
+        const response = await api.post('/tasks', { title: newTitle });
+        setTaskList([...taskList, response.data]);
+        showMessage("Task created successfully!");
+      } catch (error) {
+        console.error('Create failed', error);
+        showMessage("Create failed.", "danger");
+      }
     }
     setTask("");
+    setEditTask(null);
   };
 
   const handleEdit = (indexToEdit) => {
-    const tasktoEdit = taskList[indexToEdit];
-    setTask(tasktoEdit);
-    setEditIndex(indexToEdit);
+    const taskToEdit = taskList[indexToEdit];
+    setTask(taskToEdit.title);
+    setEditTask(taskToEdit); 
   };
 
-  const handleDelete = (indextoDelete) => {
-    const newList = taskList.filter((_, index) => {
-      return index !== indextoDelete;
-    });
-    setTaskList(newList);
-    showMessage("Task deleted successfully!");
+  const handleDelete = async (indexToDelete) => {
+    const taskToDelete = taskList[indexToDelete];
+    try {
+      await api.delete(`/tasks/${taskToDelete._id}`);
+      setTaskList(taskList.filter(t => t._id !== taskToDelete._id));
+      showMessage("Task deleted successfully!");
+    } catch (error) {
+      console.error('Delete failed', error);
+      showMessage("Delete failed.", "danger");
+    }
   };
 
   return (
     <Container fluid className="vh-100 p-0">
       <Row className="h-100 m-0">
-        <Col
-          md={6}
-          className="d-flex align-items-center justify-content-center"
-          style={{ background: "#1a1a2e" }}
-        >
-          <Task
-            handleSubmit={handleSubmit}
-            task={task}
-            setTask={setTask}
-            editIndex={editIndex}
+        <Col md={6} className="d-flex align-items-center justify-content-center" style={{ background: '#1a1a2e' }}>
+          <Button 
+            variant="outline-danger" 
+            onClick={onLogout} 
+            style={{position: 'absolute', top: 20, left: 20}}
+          >
+            Logout
+          </Button>
+          <Task 
+            handleSubmit={handleSubmit} 
+            task={task} 
+            setTask={setTask} 
+            editIndex={editTask ? true : null} 
           />
         </Col>
-
-        <Col
-          md={6}
-          className="bg-light"
-          style={{ overflowY: "auto", maxHeight: "100vh" }}
-        >
-          <List
-            taskList={taskList}
-            handleDelete={handleDelete}
-            handleEdit={handleEdit}
+        
+        <Col md={6} className="bg-light" style={{ overflowY: 'auto', maxHeight: '100vh' }}>
+          {message && (
+            <Alert 
+              variant={message.variant} 
+              style={{ position: 'sticky', top: '20px', zIndex: 10, left: '20px', right: '20px' }}
+            >
+              {message.text}
+            </Alert>
+          )}
+          <List 
+            taskList={taskList} 
+            handleDelete={handleDelete} 
+            handleEdit={handleEdit} 
           />
         </Col>
       </Row>
-
-      {message && (
-        <Alert
-          variant="success"
-          style={{
-            position: "absolute",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 1050,
-          }}
-        >
-          {message}
-        </Alert>
-      )}
     </Container>
+  );
+}
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token'); 
+    setIsLoggedIn(false);
+  };
+
+  return (
+    <Routes>
+      <Route 
+        path="/login" 
+        element={!isLoggedIn ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} 
+      />
+      <Route 
+        path="/register" 
+        element={!isLoggedIn ? <Register /> : <Navigate to="/" />} 
+      />
+      <Route 
+        path="/" 
+        element={isLoggedIn ? <TaskManager onLogout={handleLogout} /> : <Navigate to="/login" />} 
+      />
+      
+    </Routes>
   );
 }
 
